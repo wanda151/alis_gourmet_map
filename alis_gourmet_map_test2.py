@@ -34,6 +34,7 @@ user_display_names = [user_id_info.get('user_display_name') for user_id_info in 
 
 likes_apis = ["https://alis.to/api/articles/"+article_id+"/likes" for article_id in article_ids]
 #likes_apiをAPIで取り出しやすい形にする
+
 likes = [json.loads(urllib.request.urlopen(likes_api).read().decode("utf-8")) for likes_api in likes_apis]
 likes_counts = [like.get('count') for like in likes]
 #Like数　を取り出す
@@ -56,6 +57,8 @@ scope = ['https://spreadsheets.google.com/feeds',
 #googleスプレッドシートに書き込む準備をする
 
 credentials = ServiceAccountCredentials.from_json_keyfile_name('gspread-sample-31b5a8f7ef13.json', scope)
+#jsonファイル
+
 gc = gspread.authorize(credentials)
 workbook = gc.open_by_key('1u3J0zY9CXc4zHPtcrWDeGNkazFaCPVmObpu3CWVVvXA')
 #googleスプレッドシートを指定する
