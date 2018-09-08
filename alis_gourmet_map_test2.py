@@ -11,7 +11,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 
-api_tag = 'https://alis.to/api/search/articles?tag=%E8%87%B3%E9%AB%98%E3%81%AE%E2%97%8B%E2%97%8B%E3%83%86%E3%82%B9%E3%83%88'
+api_tag = 'https://alis.to/api/search/articles?tag=ALIS%E3%82%B0%E3%83%AB%E3%83%A1%E4%BC%81%E7%94%BB'
 url_tag = urllib.request.urlopen(api_tag)
 article_tags = json.loads(url_tag.read().decode("utf-8"))
 article_ids = [article_tag.get('article_id') for article_tag in article_tags]
@@ -40,6 +40,7 @@ likes_counts = [like.get('count') for like in likes]
 #Like数　を取り出す
 
 articles_bodys = [json.loads(urllib.request.urlopen(api_article_id).read().decode("utf-8")) for api_article_id in api_article_ids]
+
 def get_block(text, start_text, end_text):
     if not text.find(start_text) >= 0:
         return []
@@ -69,46 +70,34 @@ worksheet = workbook.sheet1
 for i, articles_body in enumerate(articles_bodys):
     texts = get_block(articles_body.get("body"), "<blockquote>", "</blockquote>")
     texts = [text for text in texts if text.find("〒") >= 0]
-    for text in texts:
-        texts = get_block(articles_body.get("body"), "企画名", "<br>料理ジャンル")
-    project_name_str = str(texts)
-    print(project_name_str.replace(":", "").replace("：", "").replace("['","").replace("']",""))
-    project_name = project_name_str.replace(":", "").replace("：", "").replace("['","").replace("']","")
-    worksheet.update_cell(i+2, 1, project_name)
+    project_names = get_block("".join(texts), "企画名", "<br>")
+    project_names = [name.replace(":", "").replace("：", "").replace("</blockquote><p>", "") for name in project_names ]
+    worksheet.update_cell(i+2, 1, project_names[-1])
     #スプレッドシートのA列に企画名を書き込む
 
 for i, articles_body in enumerate(articles_bodys):
     texts = get_block(articles_body.get("body"), "<blockquote>", "</blockquote>")
     texts = [text for text in texts if text.find("〒") >= 0]
-    for text in texts:
-        texts = get_block(articles_body.get("body"), "料理ジャンル", "<br>店名")
-    food_Genre_str = str(texts)
-    print(food_Genre_str.replace(":", "").replace("：", "").replace("['","").replace("']",""))
-    food_Genre = food_Genre_str.replace(":", "").replace("：", "").replace("['","").replace("']","")
-    worksheet.update_cell(i+2, 2, food_Genre)
+    food_genre = get_block("".join(texts), "料理ジャンル", "<br>")
+    food_genre = [name.replace(":", "").replace("：", "").replace("</blockquote><p>", "") for name in food_genre ]
+    worksheet.update_cell(i+2, 2, food_genre[-1])
     #スプレッドシートのB列に記事URLを書き込む
     
 for i, articles_body in enumerate(articles_bodys):
     texts = get_block(articles_body.get("body"), "<blockquote>", "</blockquote>")
     texts = [text for text in texts if text.find("〒") >= 0]
-    for text in texts:
-        texts = get_block(articles_body.get("body"), "店名：", "<br>住所")
-    store_name_str = str(texts)
-    print(store_name_str.replace(":", "").replace("：", "").replace("['","").replace("']",""))
-    store_name = store_name_str.replace(":", "").replace("：", "").replace("['","").replace("']","")
-    worksheet.update_cell(i+2, 3, store_name)
+    store_names = get_block("".join(texts), "店名", "<br>")
+    store_names = [name.replace(":", "").replace("：", "").replace("</blockquote><p>", "") for name in store_names ]
+    worksheet.update_cell(i+2, 3, store_names[-1])
     #スプレッドシートのC列に店名を書き込む
 
 for i, articles_body in enumerate(articles_bodys):
     texts = get_block(articles_body.get("body"), "<blockquote>", "</blockquote>")
     texts = [text for text in texts if text.find("〒") >= 0]
-    for text in texts:
-        texts = get_block(articles_body.get("body"), "<br>住所：", "</blockquote>")
-        texts = [text for text in texts if text.find("〒") >= 0]
-    location_str = str(texts)
-    print(location_str.replace(":", "").replace("：", "").replace("['","").replace("']",""))
-    location = location_str.replace(":", "").replace("：", "").replace("['","").replace("']","")
-    worksheet.update_cell(i+2, 4, location)
+    locations = get_block(articles_body.get("body"), "住所：","<br>")
+    locations = [location for location in locations if location.find("〒") >= 0]
+    locations = [location.replace(":", "").replace("：", "").replace("</blockquote><p>", "") for location in locations ]
+    worksheet.update_cell(i+2, 4, locations[-1])
     #スプレッドシートのD列に住所を書き込む
 
 
